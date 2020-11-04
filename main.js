@@ -6,7 +6,7 @@ const mysql = require('mysql2/promise')
 
 // SQL 
 const SQL_FIND_BY_NAME = 'select * from apps where name like ? limit ? offset ?'
-const SQL_COUNT_Q = 'select count(*) as q_count where name like ?'
+const SQL_COUNT_Q = 'select count(*) as q_count from apps where name like ?'
 const SQL_FIND_BY_APP_ID = 'select * from apps where appid = ?'
 
 // configure PORT
@@ -63,21 +63,38 @@ app.get('/search',
     async (req, resp) => {
         const q = req.query['q'];
         const offset = parseInt(req.query['offset']) || 0
-        const limit = 10
+        const limit = 5
 
         // acquire a connection from the pool
         let conn, recs;
 
         try {
             conn = await pool.getConnection()
-			  // count the number of results
-			  //let result = await conn.query(SQL_COUNT_Q, [ `%${q}%` ])
-			  //const queryCount = result[0][0].q_count
+			// count the number of results
+			let count = await conn.query(SQL_COUNT_Q, [ `%${q}%` ])
+            const queryCount = count[0][0].q_count
+            const currentPage = offset/limit || 0
+            const pages = Math.floor(queryCount/limit)
 
             // perform the query
             //  select * from apps where name like ? limit ?
             let result = await conn.query(SQL_FIND_BY_NAME, [ `%${q}%`, limit, offset ])
-            recs = result[0];
+            recs = result[0];        
+            
+            resp.status(200)
+            resp.type('text/html')
+            resp.render('results', 
+                { 
+                    result: recs, 
+                    hasResult: recs.length > 0,
+                    q: q,
+                    page: currentPage,
+                    noNextPage: currentPage == pages,
+                    noPrevPage: currentPage == 0,
+                    prevOffset: Math.max(0, offset - limit),
+                    nextOffset: offset + limit
+                }
+            )
 
         } catch(e) {
 			  resp.status(500)
@@ -89,17 +106,6 @@ app.get('/search',
                 conn.release()
         }
 
-        resp.status(200)
-        resp.type('text/html')
-        resp.render('results', 
-            { 
-                result: recs, 
-                hasResult: recs.length > 0,
-                q: q,
-                prevOffset: Math.max(0, offset - limit),
-                nextOffset: offset + limit
-            }
-        )
     }
 )
 

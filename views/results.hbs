@@ -1,6 +1,6 @@
 {{#if hasResult}}
     <h2>Search Results</h2>
-    <table>
+    <table class="table">
         <thead>
             <tr>
                 <th>Name</th>
@@ -17,30 +17,37 @@
                     <td>{{ this.rating }}</td>
                     <td>{{ this.installs }}</td>
                 </tr>
-            {{/each}}
-
-            <!-- navigation buttons -->
-            <tr>
-                <td>
-                    <form method="GET" action="/search">
-                        <input type="hidden" name="q" value="{{ q }}">
-                        <input type="hidden" name="offset" value={{ prevOffset }}>
-                        <button type="submit">Previous</button>
-                    </form>
-                </td>
-                <td>
-                    <form method="GET" action="/search">
-                        <input type="hidden" name="q" value="{{ q }}">
-                        <input type="hidden" name="offset" value={{ nextOffset }}>
-                        <button type="submit">Next</button>
-                    </form>
-
-                </td>
-            </tr>
-
+            {{/each}}     
         </tbody>
-    </table>
-
+    </table>    
+    <!-- navigation buttons -->
+    <div class="row d-flex justify-content-between">
+        {{#if noNextPage}}
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ prevOffset }}>
+                <button type="submit">Previous</button>
+            </form>
+        {{else if noPrevPage}}
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ nextOffset }}>
+                <button type="submit">Next</button>
+            </form>
+        {{else}}  
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ prevOffset }}>
+                <button type="submit">Previous</button>
+            </form>
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ nextOffset }}>
+                <button type="submit">Next</button>
+            </form>
+        {{/if}}
+        <input type="hidden" name="page" value="{{ page }}">
+    </div> 
 {{else}}
     <h2>Your search produces no result</h2>
 
